@@ -1,5 +1,5 @@
 name: "ESS LINK"
-version: "1.1.0"
+version: "1.2.0"
 slug: ess_link
 description: "Показники інвертора Sinexcel / EnSmart SolarAll через донгл ESS LINK у MQTT (лише читання)"
 url: "https://github.com/seishio/ess-link-addon"

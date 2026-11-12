@@ -19,7 +19,7 @@ import struct
 import time
 from typing import NamedTuple
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 log = logging.getLogger("ess")
 
@@ -205,40 +205,40 @@ class Sensor(NamedTuple):
 
 _SENSOR_ROWS = [
     ("solar_power", "Потужність PV", 0x1270, 1000, W, "power", "measurement", 1, None),
-    ("battery_power", "Потужність батареї (+розряд / −заряд)", 0x1272, -1000, W, "power", "measurement", 1, None),
+    ("battery_power", "Потужність батареї", 0x1272, -1000, W, "power", "measurement", 1, None),
     ("load_power", "Потужність навантаження", 0x1274, 1000, W, "power", "measurement", 1, None),
-    ("grid_power", "Потужність мережі (+імпорт / −експорт)", 0x1276, -1000, W, "power", "measurement", 1, None),
-    ("backup_load_power", "Потужність резервного навантаження", 0x1278, 1000, W, "power", "measurement", 1, None),
+    ("grid_power", "Потужність мережі", 0x1276, -1000, W, "power", "measurement", 1, None),
+    ("backup_load_power", "Резервне навантаження", 0x1278, 1000, W, "power", "measurement", 1, None),
     ("pv1_power", "Потужність PV1", 0x1204, 1000, W, "power", "measurement", 0, None),
     ("pv2_power", "Потужність PV2", 0x120A, 1000, W, "power", "measurement", 0, None),
     ("battery_soc", "Заряд батареї (SOC)", 0x1212, 1, PCT, "battery", "measurement", 1, None),
-    ("battery_voltage", "Напруга батареї", 0x120C, 1, V, "voltage", "measurement", 1, None),
-    ("battery_current", "Струм батареї (+розряд / −заряд)", 0x120E, -1, A, "current", "measurement", 1, None),
+    ("battery_voltage", "Напруга батареї", 0x120C, 1, V, "voltage", "measurement", 1, "diagnostic"),
+    ("battery_current", "Струм батареї", 0x120E, -1, A, "current", "measurement", 1, "diagnostic"),
     ("battery2_soc", "Заряд батареї 2 (SOC)", 0x121C, 1, PCT, "battery", "measurement", 1, None),
-    ("battery2_voltage", "Напруга батареї 2", 0x1216, 1, V, "voltage", "measurement", 1, None),
-    ("battery2_current", "Струм батареї 2", 0x1218, -1, A, "current", "measurement", 1, None),
-    ("battery2_power", "Потужність батареї 2", 0x121A, -1000, W, "power", "measurement", 1, None),
-    ("grid_voltage_a", "Напруга мережі L1", 0x1000, 1, V, "voltage", "measurement", 1, None),
-    ("grid_voltage_b", "Напруга мережі L2", 0x1002, 1, V, "voltage", "measurement", 1, None),
-    ("grid_voltage_c", "Напруга мережі L3", 0x1004, 1, V, "voltage", "measurement", 1, None),
-    ("grid_frequency", "Частота мережі", 0x1012, 1, HZ, "frequency", "measurement", 1, None, 2),
-    ("energy_battery_charge", "Енергія заряду батареї (всього)", 0x125E, 1, KWH, "energy", "total_increasing", 1, None),
-    ("energy_battery_discharge", "Енергія розряду батареї (всього)", 0x1260, 1, KWH, "energy", "total_increasing", 1, None),
+    ("battery2_voltage", "Напруга батареї 2", 0x1216, 1, V, "voltage", "measurement", 1, "diagnostic"),
+    ("battery2_current", "Струм батареї 2", 0x1218, -1, A, "current", "measurement", 1, "diagnostic"),
+    ("battery2_power", "Потужність батареї 2", 0x121A, -1000, W, "power", "measurement", 1, "diagnostic"),
+    ("grid_voltage_a", "Напруга мережі L1", 0x1000, 1, V, "voltage", "measurement", 1, "diagnostic"),
+    ("grid_voltage_b", "Напруга мережі L2", 0x1002, 1, V, "voltage", "measurement", 1, "diagnostic"),
+    ("grid_voltage_c", "Напруга мережі L3", 0x1004, 1, V, "voltage", "measurement", 1, "diagnostic"),
+    ("grid_frequency", "Частота мережі", 0x1012, 1, HZ, "frequency", "measurement", 1, "diagnostic", 2),
+    ("energy_battery_charge", "Енергія заряду, всього", 0x125E, 1, KWH, "energy", "total_increasing", 1, None),
+    ("energy_battery_discharge", "Енергія розряду, всього", 0x1260, 1, KWH, "energy", "total_increasing", 1, None),
     ("energy_solar_today", "Енергія PV за добу", 0x1264, 1, KWH, "energy", "total_increasing", 1, None),
     ("energy_grid_import_today", "Енергія з мережі за добу", 0x1266, 1, KWH, "energy", "total_increasing", 1, None),
     ("energy_grid_export_today", "Енергія в мережу за добу", 0x1268, 1, KWH, "energy", "total_increasing", 1, None),
-    ("energy_load_today", "Енергія навантаження за добу", 0x126E, 1, KWH, "energy", "total_increasing", 1, None),
+    ("energy_load_today", "Споживання за добу", 0x126E, 1, KWH, "energy", "total_increasing", 1, None),
     ("temperature_0", "Температура інвертора", 0x10DE, 1, C, "temperature", "measurement", 1, "diagnostic"),
-    ("pv1_voltage", "Напруга PV1", 0x1200, 1, V, "voltage", "measurement", 1, None),
-    ("pv1_current", "Струм PV1", 0x1202, 1, A, "current", "measurement", 1, None),
-    ("pv2_voltage", "Напруга PV2", 0x1206, 1, V, "voltage", "measurement", 1, None),
-    ("pv2_current", "Струм PV2", 0x1208, 1, A, "current", "measurement", 1, None),
-    ("grid_current_l1", "Струм мережі L1", 0x1014, 1, A, "current", "measurement", 1, None),
-    ("grid_current_l2", "Струм мережі L2", 0x1016, 1, A, "current", "measurement", 1, None),
-    ("grid_current_l3", "Струм мережі L3", 0x1018, 1, A, "current", "measurement", 1, None),
-    ("grid_power_l1", "Потужність мережі L1 (+імпорт / −експорт)", 0x102E, -1000, W, "power", "measurement", 1, None),
-    ("grid_power_l2", "Потужність мережі L2 (+імпорт / −експорт)", 0x1030, -1000, W, "power", "measurement", 1, None),
-    ("grid_power_l3", "Потужність мережі L3 (+імпорт / −експорт)", 0x1032, -1000, W, "power", "measurement", 1, None),
+    ("pv1_voltage", "Напруга PV1", 0x1200, 1, V, "voltage", "measurement", 1, "diagnostic"),
+    ("pv1_current", "Струм PV1", 0x1202, 1, A, "current", "measurement", 1, "diagnostic"),
+    ("pv2_voltage", "Напруга PV2", 0x1206, 1, V, "voltage", "measurement", 1, "diagnostic"),
+    ("pv2_current", "Струм PV2", 0x1208, 1, A, "current", "measurement", 1, "diagnostic"),
+    ("grid_current_l1", "Струм мережі L1", 0x1014, 1, A, "current", "measurement", 1, "diagnostic"),
+    ("grid_current_l2", "Струм мережі L2", 0x1016, 1, A, "current", "measurement", 1, "diagnostic"),
+    ("grid_current_l3", "Струм мережі L3", 0x1018, 1, A, "current", "measurement", 1, "diagnostic"),
+    ("grid_power_l1", "Потужність мережі L1", 0x102E, -1000, W, "power", "measurement", 1, "diagnostic"),
+    ("grid_power_l2", "Потужність мережі L2", 0x1030, -1000, W, "power", "measurement", 1, "diagnostic"),
+    ("grid_power_l3", "Потужність мережі L3", 0x1032, -1000, W, "power", "measurement", 1, "diagnostic"),
     ("grid_apparent_l1", "Повна потужність мережі L1", 0x1028, 1000, "VA", "apparent_power", "measurement", 0, "diagnostic"),
     ("grid_apparent_l2", "Повна потужність мережі L2", 0x102A, 1000, "VA", "apparent_power", "measurement", 0, "diagnostic"),
     ("grid_apparent_l3", "Повна потужність мережі L3", 0x102C, 1000, "VA", "apparent_power", "measurement", 0, "diagnostic"),
@@ -248,26 +248,26 @@ _SENSOR_ROWS = [
     ("grid_pf_l1", "Коефіцієнт потужності L1", 0x1040, 1, None, "power_factor", "measurement", 0, "diagnostic", 2),
     ("grid_pf_l2", "Коефіцієнт потужності L2", 0x1042, 1, None, "power_factor", "measurement", 0, "diagnostic", 2),
     ("grid_pf_l3", "Коефіцієнт потужності L3", 0x1044, 1, None, "power_factor", "measurement", 0, "diagnostic", 2),
-    ("battery1_power", "Потужність батареї 1 (+розряд / −заряд)", 0x1210, -1000, W, "power", "measurement", 1, None),
+    ("battery1_power", "Потужність батареї 1", 0x1210, -1000, W, "power", "measurement", 1, "diagnostic"),
     ("meter_voltage_l1", "Лічильник: напруга L1", 0xA100, 1, V, "voltage", "measurement", 1, "diagnostic"),
     ("meter_voltage_l2", "Лічильник: напруга L2", 0xA102, 1, V, "voltage", "measurement", 1, "diagnostic"),
     ("meter_voltage_l3", "Лічильник: напруга L3", 0xA104, 1, V, "voltage", "measurement", 1, "diagnostic"),
     ("meter_current_l1", "Лічильник: струм L1", 0xA106, 1, A, "current", "measurement", 1, "diagnostic"),
     ("meter_current_l2", "Лічильник: струм L2", 0xA108, 1, A, "current", "measurement", 1, "diagnostic"),
     ("meter_current_l3", "Лічильник: струм L3", 0xA10A, 1, A, "current", "measurement", 1, "diagnostic"),
-    ("meter_power", "Лічильник: потужність (+ імпорт)", 0xA124, 1000, W, "power", "measurement", 1, "diagnostic"),
+    ("meter_power", "Лічильник: потужність", 0xA124, 1000, W, "power", "measurement", 1, "diagnostic"),
     ("grid_line_voltage_ab", "Лінійна напруга L1-L2", 0x1006, 1, V, "voltage", "measurement", 0, "diagnostic"),
     ("grid_line_voltage_bc", "Лінійна напруга L2-L3", 0x1008, 1, V, "voltage", "measurement", 0, "diagnostic"),
     ("grid_line_voltage_ca", "Лінійна напруга L3-L1", 0x100A, 1, V, "voltage", "measurement", 0, "diagnostic"),
-    ("battery_soh", "Здоров'я батареї (SOH)", 0xB108, 1, PCT, None, "measurement", 1, None),
-    ("battery_cell_voltage_max", "Напруга комірки макс.", 0xB10A, 1, V, "voltage", "measurement", 1, None, 3),
-    ("battery_cell_voltage_min", "Напруга комірки мін.", 0xB10C, 1, V, "voltage", "measurement", 1, None, 3),
-    ("battery_cell_temp_max", "Температура комірок макс.", 0xB112, 1, C, "temperature", "measurement", 1, None),
-    ("battery_cell_temp_min", "Температура комірок мін.", 0xB114, 1, C, "temperature", "measurement", 1, None),
-    ("bms_charge_current_limit", "BMS: ліміт струму заряду", 0xB11A, 1, A, "current", "measurement", 1, None),
-    ("bms_discharge_current_limit", "BMS: ліміт струму розряду", 0xB11C, 1, A, "current", "measurement", 1, None),
-    ("battery_capacity", "Ємність батареї (встановлена)", 0xB15C, 1, KWH, "energy_storage", "measurement", 1, None),
-    ("battery_remaining_energy", "Залишок енергії в батареї", 0xB15E, 1, KWH, "energy_storage", "measurement", 1, None),
+    ("battery_soh", "Здоров'я батареї (SOH)", 0xB108, 1, PCT, None, "measurement", 1, "diagnostic"),
+    ("battery_cell_voltage_max", "Напруга комірки макс.", 0xB10A, 1, V, "voltage", "measurement", 1, "diagnostic", 3),
+    ("battery_cell_voltage_min", "Напруга комірки мін.", 0xB10C, 1, V, "voltage", "measurement", 1, "diagnostic", 3),
+    ("battery_cell_temp_max", "Температура комірок макс.", 0xB112, 1, C, "temperature", "measurement", 1, "diagnostic"),
+    ("battery_cell_temp_min", "Температура комірок мін.", 0xB114, 1, C, "temperature", "measurement", 1, "diagnostic"),
+    ("bms_charge_current_limit", "BMS: ліміт струму заряду", 0xB11A, 1, A, "current", "measurement", 1, "diagnostic"),
+    ("bms_discharge_current_limit", "BMS: ліміт струму розряду", 0xB11C, 1, A, "current", "measurement", 1, "diagnostic"),
+    ("battery_capacity", "Ємність батареї", 0xB15C, 1, KWH, "energy_storage", "measurement", 1, "diagnostic"),
+    ("battery_remaining_energy", "Залишок енергії в батареї", 0xB15E, 1, KWH, "energy_storage", "measurement", 1, "diagnostic"),
     ("work_mode_code", None, 0x300C, 1, None, None, None, 0, None),        # internal, converted to text
     ("batt1_min_soc", "Налаштування: Batt1 мін. SoC", 0x3046, 1, PCT, None, None, 1, "diagnostic"),
     ("batt1_backup_soc", "Налаштування: Batt1 резервний SoC", 0x314A, 1, PCT, None, None, 1, "diagnostic"),
@@ -449,15 +449,15 @@ class MQTT:
 DIAG = {"entity_category": "diagnostic"}
 EXTRA = (
     ("work_mode", "Режим роботи", "mdi:cog", {}),
-    ("backup_hours", "Автономність від батареї (орієнтовно)", "mdi:battery-clock",
+    ("backup_hours", "Автономність батареї", "mdi:battery-clock",
      {"unit_of_measurement": "h", "state_class": "measurement", "suggested_display_precision": 1}),
     ("alarms_text", "Аварії та повідомлення", "mdi:alert-circle-outline", {}),
-    ("alarm_count", "Кількість аварій і попереджень", "mdi:alert", {"state_class": "measurement"}),
+    ("alarm_count", "Кількість аварій", "mdi:alert", dict(DIAG, state_class="measurement")),
     ("meter_status", "Лічильник електроенергії (зв'язок)", "mdi:meter-electric", DIAG),
     ("clock_offset_min", "Відхилення часу інвертора", "mdi:clock-alert-outline",
      dict(DIAG, unit_of_measurement="min", state_class="measurement")),
     ("cell_voltage_spread_mv", "Розкид напруги комірок", "mdi:battery-heart-variant",
-     {"unit_of_measurement": "mV", "state_class": "measurement"}),
+     dict(DIAG, unit_of_measurement="mV", state_class="measurement")),
 )
 
 
@@ -489,7 +489,7 @@ def discovery(sn, inv_serial):
             cfg("sensor", sensor.key, sensor.name, **extra)
     for key, name, icon, extra in EXTRA:
         cfg("sensor", key, name, icon=icon, **extra)
-    cfg("binary_sensor", "problem", "Є аварії або попередження", device_class="problem", payload_on="ON", payload_off="OFF")
+    cfg("binary_sensor", "problem", "Є аварії", device_class="problem", payload_on="ON", payload_off="OFF")
     return out
 
 
