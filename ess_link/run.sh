@@ -24,6 +24,9 @@ else
 fi
 
 args=(--dongle "$(bashio::config 'dongle')" --mqtt "${mqtt}" --user "${mqtt_user}" --password "${mqtt_password}")
+if bashio::config.has_value 'device_name'; then
+    args+=(--name "$(bashio::config 'device_name')")
+fi
 if bashio::config.true 'verbose'; then
     args+=(--verbose)
 fi

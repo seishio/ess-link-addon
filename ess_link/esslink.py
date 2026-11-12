@@ -19,7 +19,7 @@ import struct
 import time
 from typing import NamedTuple
 
-__version__ = "1.2.1"
+__version__ = "1.3.0"
 
 log = logging.getLogger("ess")
 
@@ -31,6 +31,7 @@ MQTT_PORT = 1883
 MQTT_USER = "ess"
 MQTT_PASS = "esslink"         # default password, change it together with the broker
 TOPIC_PREFIX = "esslink"     # topics: <prefix>/<dongle id>/state
+DEVICE_NAME = "Інвертор"     # device name in Home Assistant; with several inverters give each its own
 # ----------------------------------------------------------------------------------------------------
 DISC = "homeassistant"        # Home Assistant MQTT discovery prefix
 
@@ -483,7 +484,7 @@ def topic(sn, leaf):
 
 def discovery(sn, inv_serial):
     """MQTT discovery configs for Home Assistant: {topic: config}."""
-    dev = {"identifiers": [f"esslink_{sn}"], "name": "EnSmart SolarAll EHV ESS-20kW", "manufacturer": "EnSmart / Sinexcel",
+    dev = {"identifiers": [f"esslink_{sn}"], "name": DEVICE_NAME, "manufacturer": "EnSmart / Sinexcel",
            "model": "SolarAll EHV ESS-20kW (донгл AGN8)", "serial_number": inv_serial or sn, "sw_version": __version__}
     base = {"availability_topic": topic(sn, "availability"), "state_topic": topic(sn, "state"), "device": dev}
     out = {}
@@ -811,6 +812,7 @@ def parse_args(argv=None):
     ap.add_argument("--mqtt", default=MQTT_HOST, metavar="IP[:ПОРТ]", help="адреса MQTT-брокера (за замовчуванням %(default)s, порт 1883)")
     ap.add_argument("--user", default=MQTT_USER, help="логін MQTT (за замовчуванням %(default)s)")
     ap.add_argument("--password", default=MQTT_PASS, help="пароль MQTT (за замовчуванням %(default)s)")
+    ap.add_argument("--name", default=DEVICE_NAME, help="назва пристрою в Home Assistant (за замовчуванням %(default)s); для кількох інверторів дайте кожному свою")
     ap.add_argument("-v", "--verbose", action="store_true", help="докладний журнал")
     ap.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     ap.add_argument("--once", action="store_true", help=argparse.SUPPRESS)     # diagnostics: read, print, exit
@@ -825,11 +827,12 @@ def _hostport(s, default_port):
 
 
 async def main():
-    global DONGLE_HOST, DONGLE_PORT, MQTT_HOST, MQTT_PORT, MQTT_USER, MQTT_PASS
+    global DONGLE_HOST, DONGLE_PORT, MQTT_HOST, MQTT_PORT, MQTT_USER, MQTT_PASS, DEVICE_NAME
     a = parse_args()
     DONGLE_HOST, DONGLE_PORT = _hostport(a.dongle, DONGLE_PORT)
     MQTT_HOST, MQTT_PORT = _hostport(a.mqtt, MQTT_PORT)
     MQTT_USER, MQTT_PASS = a.user, a.password
+    DEVICE_NAME = a.name
     logging.basicConfig(level="DEBUG" if a.verbose else "INFO", format="%(asctime)s %(levelname)s %(message)s")
     log.info("esslink %s", __version__)
     task = asyncio.current_task()
