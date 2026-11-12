@@ -19,7 +19,7 @@ import struct
 import time
 from typing import NamedTuple
 
-__version__ = "1.2.0"
+__version__ = "1.2.1"
 
 log = logging.getLogger("ess")
 
@@ -44,6 +44,7 @@ METER_ONLINE_MIN = 0.5                  # meter register value from which the me
 PING_INTERVAL = 25                      # s; MQTT keepalive is 60 s
 STATUS_LOG_INTERVAL = 300               # s between "running: ..." log lines
 LONG_SESSION = 120                      # s; after a longer session the retry delay resets
+DISCOVERY_PAUSE = 0.15                  # s between the main entities' discovery messages (Home Assistant lists entities in registration order)
 
 
 def crc16(d):
@@ -267,7 +268,7 @@ _SENSOR_ROWS = [
     ("bms_charge_current_limit", "BMS: ліміт струму заряду", 0xB11A, 1, A, "current", "measurement", 1, "diagnostic"),
     ("bms_discharge_current_limit", "BMS: ліміт струму розряду", 0xB11C, 1, A, "current", "measurement", 1, "diagnostic"),
     ("battery_capacity", "Ємність батареї", 0xB15C, 1, KWH, "energy_storage", "measurement", 1, "diagnostic"),
-    ("battery_remaining_energy", "Залишок енергії в батареї", 0xB15E, 1, KWH, "energy_storage", "measurement", 1, "diagnostic"),
+    ("battery_remaining_energy", "Залишок енергії", 0xB15E, 1, KWH, "energy_storage", "measurement", 1, None),
     ("work_mode_code", None, 0x300C, 1, None, None, None, 0, None),        # internal, converted to text
     ("batt1_min_soc", "Налаштування: Batt1 мін. SoC", 0x3046, 1, PCT, None, None, 1, "diagnostic"),
     ("batt1_backup_soc", "Налаштування: Batt1 резервний SoC", 0x314A, 1, PCT, None, None, 1, "diagnostic"),
@@ -445,6 +446,20 @@ class MQTT:
             self.w.close()
 
 
+# Main entities in dashboard order, two per row. They are published first, one by one,
+# so that Home Assistant registers them (and auto-generated dashboards list them) in this order.
+MAIN_ENTITIES = (
+    "solar_power", "load_power",
+    "battery_power", "grid_power",
+    "backup_load_power", "work_mode",
+    "battery_soc", "battery2_soc",
+    "battery_remaining_energy", "backup_hours",
+    "energy_solar_today", "energy_load_today",
+    "energy_grid_import_today", "energy_grid_export_today",
+    "energy_battery_charge", "energy_battery_discharge",
+    "alarms_text", "problem",
+)
+
 # Computed entities: (key, name, icon, extra config fields)
 DIAG = {"entity_category": "diagnostic"}
 EXTRA = (
@@ -490,7 +505,8 @@ def discovery(sn, inv_serial):
     for key, name, icon, extra in EXTRA:
         cfg("sensor", key, name, icon=icon, **extra)
     cfg("binary_sensor", "problem", "Є аварії", device_class="problem", payload_on="ON", payload_off="OFF")
-    return out
+    main = [config_topic for key in MAIN_ENTITIES for config_topic in out if config_topic.endswith(f"/{key}/config")]
+    return {**{config_topic: out[config_topic] for config_topic in main}, **out}
 
 
 async def read_serial(dg):
@@ -526,8 +542,10 @@ class Publisher:
                 self.sn, self.announced = sn, None
                 log.info("MQTT %s:%s: підключено", MQTT_HOST, MQTT_PORT)
             if self.announced != serial:
-                for config_topic, config in discovery(sn, serial).items():
+                for n, (config_topic, config) in enumerate(discovery(sn, serial).items()):
                     await self.mq.publish(config_topic, config)
+                    if n < len(MAIN_ENTITIES):
+                        await asyncio.sleep(DISCOVERY_PAUSE)
                 self.announced = serial
                 log.info("MQTT: автооголошення опубліковано")
             await self.mq.publish(topic(sn, "availability"), "online")
