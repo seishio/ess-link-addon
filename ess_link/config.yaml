@@ -1,5 +1,5 @@
 name: "ESS LINK"
-version: "1.3.1"
+version: "1.3.2"
 slug: ess_link
 description: "Показники інвертора Sinexcel / EnSmart SolarAll через донгл ESS LINK у MQTT (лише читання)"
 url: "https://github.com/seishio/ess-link-addon"
@@ -11,9 +11,13 @@ services:
   - mqtt:want
 options:
   verbose: false
+  inverters: []
 schema:
-  dongle: str
+  dongle: str?
   device_name: str?
+  inverters:
+    - name: str
+      dongle: str
   mqtt_host: str?
   mqtt_user: str?
   mqtt_password: password?

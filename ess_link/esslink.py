@@ -19,7 +19,7 @@ import struct
 import time
 from typing import NamedTuple
 
-__version__ = "1.3.1"
+__version__ = "1.3.2"
 
 log = logging.getLogger("ess")
 
@@ -283,7 +283,7 @@ _SENSOR_ROWS = [
 SENSORS = [Sensor(*row) for row in _SENSOR_ROWS]
 NOISE = {"power": 5.0, "voltage": 5.0, "current": 0.05}      # PV noise threshold by device class
 NON_NEGATIVE = {"solar_power", "pv1_power", "pv2_power", "pv1_voltage", "pv1_current", "pv2_voltage", "pv2_current"}
-WORK_MODES = {0: "Самоспоживання", 1: "За розкладом", 2: "Динамічний тариф", 3: "Резервний", 4: "Дистанційний",
+WORK_MODES = {0: "Самоспоживання", 1: "За розкладом", 2: "Динамічний тариф", 3: "Backup", 4: "Дистанційний",
               5: "Пріоритет заряду від PV", 6: "Пріоритет віддачі в мережу", 7: "Регулювання напруги", 8: "Пікове згладжування"}
 
 
@@ -338,7 +338,7 @@ class State:
         else:      # usable energy above the minimum SoC / current load (estimate)
             v["backup_hours"] = round(min(cap * max(soc - floor, 0) * 10 / max(load, 100), 99), 1)
         m = self.f32(0xA000)
-        v["meter_status"] = None if m is None else ("є зв'язок" if m >= METER_ONLINE_MIN else "немає зв'язку")
+        v["meter_status"] = None if m is None else ("online" if m >= METER_ONLINE_MIN else "offline")
         v["clock_offset_min"] = self._clock_offset()
 
     def _clock_offset(self):
